@@ -1,7 +1,10 @@
 package com.example.UserAuthentication.services;
 
-import org.springframework.stereotype.Service;
+import com.example.UserAuthentication.exceptions.EmailAlreadyExists;
+import com.example.UserAuthentication.exceptions.UserNotFoundException;
+import com.example.UserAuthentication.models.User;
 
-@Service
-public class UserService {
+public interface UserService {
+    User userLogin(String email, String password) throws UserNotFoundException;
+    User userSignup(String name, String email, String password) throws EmailAlreadyExists;
 }
