@@ -1,8 +1,6 @@
 package com.example.UserAuthentication.services;
 
-import com.example.UserAuthentication.exceptions.EmailAlreadyExists;
-import com.example.UserAuthentication.exceptions.IncorrectPasswordException;
-import com.example.UserAuthentication.exceptions.UserNotFoundException;
+import com.example.UserAuthentication.exceptions.*;
 import com.example.UserAuthentication.models.Token;
 import com.example.UserAuthentication.models.User;
 import com.example.UserAuthentication.repositories.TokenRepository;
@@ -62,6 +60,26 @@ public class UserServiceImpl implements UserService {
         newUser.setEmail(email);
         newUser.setPassword(this.bCryptPasswordEncoder.encode(password));
         return this.userRepository.save(newUser);
+    }
+
+    @Override
+    public void logout(String tokenValue) throws InvalidTokenException, TokenExpiredException {
+        System.out.println("logout service : " + tokenValue);
+        Optional<Token> optionalToken = this.tokenRepository.findByTokenValue(tokenValue);
+        if(optionalToken.isEmpty()){
+            System.out.println("invalid tokenValue");
+            throw new InvalidTokenException("Invalid tokenValue");
+        }
+        Token token = optionalToken.get();
+        if(token.getExpiryDate().before(new Date())){
+            token.setExpired(true);
+        }
+        if(token.isExpired()){
+            System.out.println("token expired");
+            throw new TokenExpiredException("Token expired");
+        }
+        this.tokenRepository.save(token);
+        System.out.println("SAVED");
     }
 
     private Date getThirtyDaysLaterDate(){

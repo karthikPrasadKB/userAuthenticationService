@@ -2,9 +2,7 @@ package com.example.UserAuthentication.controllers;
 
 import com.example.UserAuthentication.dtos.*;
 import com.example.UserAuthentication.dtos.ResponseStatus;
-import com.example.UserAuthentication.exceptions.EmailAlreadyExists;
-import com.example.UserAuthentication.exceptions.IncorrectPasswordException;
-import com.example.UserAuthentication.exceptions.UserNotFoundException;
+import com.example.UserAuthentication.exceptions.*;
 import com.example.UserAuthentication.models.Token;
 import com.example.UserAuthentication.models.User;
 import com.example.UserAuthentication.services.UserService;
@@ -52,9 +50,14 @@ public class UserController {
         return signupResponseDto;
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Void> userLogout(@RequestParam("token") String token){
-        //Yet to implement
+    @PostMapping("/logout/{token}")
+    public ResponseEntity<Void> userLogout(@RequestParam("token") String token) throws InvalidTokenException, TokenExpiredException {
+        System.out.println("controller logout");
+        try{
+            this.userService.logout(token);
+        }catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
