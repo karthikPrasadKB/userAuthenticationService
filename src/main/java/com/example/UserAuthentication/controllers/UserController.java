@@ -62,8 +62,11 @@ public class UserController {
     }
 
     @PostMapping("/validate/{token}")
-    public Boolean validateToken(@PathVariable("token") String token){
-        //Yet to implement
-        return false;
+    public Boolean validateToken(@PathVariable("token") String token) throws InvalidTokenException, TokenExpiredException{
+        try {
+            return this.userService.validateToken(token);
+        }catch (Exception e){
+            return false;
+        }
     }
 }

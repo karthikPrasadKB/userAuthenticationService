@@ -64,22 +64,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void logout(String tokenValue) throws InvalidTokenException, TokenExpiredException {
-        System.out.println("logout service : " + tokenValue);
-        Optional<Token> optionalToken = this.tokenRepository.findByTokenValue(tokenValue);
-        if(optionalToken.isEmpty()){
-            System.out.println("invalid tokenValue");
-            throw new InvalidTokenException("Invalid tokenValue");
-        }
-        Token token = optionalToken.get();
-        if(token.getExpiryDate().before(new Date())){
-            token.setExpired(true);
-        }
-        if(token.isExpired()){
-            System.out.println("token expired");
-            throw new TokenExpiredException("Token expired");
-        }
-        this.tokenRepository.save(token);
-        System.out.println("SAVED");
+        this.validateToken(tokenValue);
     }
 
     private Date getThirtyDaysLaterDate(){
@@ -87,5 +72,19 @@ public class UserServiceImpl implements UserService {
         calendar.setTime(new Date());
         calendar.add(Calendar.DAY_OF_MONTH, 30);
         return calendar.getTime();
+    }
+
+    public Boolean validateToken(String tokenId) throws InvalidTokenException, TokenExpiredException {
+        Optional<Token> optionalToken = this.tokenRepository.findByTokenValue(tokenId);
+        if (optionalToken.isEmpty()) {
+            throw new InvalidTokenException("Token is invalid");
+        }
+        Token token = optionalToken.get();
+        if(token.getExpiryDate().before(new Date())){
+            token.setExpired(true);
+            this.tokenRepository.save(token);
+            throw new TokenExpiredException("Token has expired");
+        }
+        return true;
     }
 }
