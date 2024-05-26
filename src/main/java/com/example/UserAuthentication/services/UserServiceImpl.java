@@ -1,6 +1,7 @@
 package com.example.UserAuthentication.services;
 
 import com.example.UserAuthentication.exceptions.*;
+import com.example.UserAuthentication.models.Role;
 import com.example.UserAuthentication.models.Token;
 import com.example.UserAuthentication.models.User;
 import com.example.UserAuthentication.repositories.TokenRepository;
@@ -9,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -59,6 +57,9 @@ public class UserServiceImpl implements UserService {
         newUser.setName(name);
         newUser.setEmail(email);
         newUser.setPassword(this.bCryptPasswordEncoder.encode(password));
+        List<Role> roles = new ArrayList<>();
+        roles.add(new Role("ADMIN"));
+        newUser.setRoles(roles);
         return this.userRepository.save(newUser);
     }
 
