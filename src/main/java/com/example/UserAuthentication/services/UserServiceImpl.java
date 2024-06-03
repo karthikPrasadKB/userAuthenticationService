@@ -1,12 +1,16 @@
 package com.example.UserAuthentication.services;
 
+import com.example.UserAuthentication.dtos.SendEmailDTO;
 import com.example.UserAuthentication.exceptions.*;
 import com.example.UserAuthentication.models.Role;
 import com.example.UserAuthentication.models.Token;
 import com.example.UserAuthentication.models.User;
 import com.example.UserAuthentication.repositories.TokenRepository;
 import com.example.UserAuthentication.repositories.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +21,10 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
     private TokenRepository tokenRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    KafkaTemplate<String, String> kafkaTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, TokenRepository tokenRepository,
@@ -47,7 +55,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User userSignup(String name, String email, String password) throws EmailAlreadyExists {
+    public User userSignup(String name, String email, String password) throws EmailAlreadyExists, JsonProcessingException {
+        System.out.println("Services : userSignup");
         Optional<User> optionalUser = this.userRepository.findByEmail(email);
         //Validate if email already exists
         if(optionalUser.isPresent()){
@@ -57,10 +66,18 @@ public class UserServiceImpl implements UserService {
         newUser.setName(name);
         newUser.setEmail(email);
         newUser.setPassword(this.bCryptPasswordEncoder.encode(password));
-        List<Role> roles = new ArrayList<>();
-        roles.add(new Role("ADMIN"));
-        newUser.setRoles(roles);
+        //send() expects string. But we need to send a DTO which is an object. Hence using objectmapper
+        kafkaTemplate.send("sendEmail", this.objectMapper.writeValueAsString(this.createMesageFormat(newUser)));
         return this.userRepository.save(newUser);
+    }
+
+    private SendEmailDTO createMesageFormat(User newUser) {
+        SendEmailDTO sendEmailDTO = new SendEmailDTO();
+        sendEmailDTO.setTo(newUser.getEmail());
+        sendEmailDTO.setFrom("clientEmail@email.com");
+        sendEmailDTO.setMessage("Your signup is successful. Have a great day");
+        sendEmailDTO.setSubject("Signup successful");
+        return sendEmailDTO;
     }
 
     @Override

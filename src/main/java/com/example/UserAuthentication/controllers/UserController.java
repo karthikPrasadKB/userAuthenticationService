@@ -6,6 +6,7 @@ import com.example.UserAuthentication.exceptions.*;
 import com.example.UserAuthentication.models.Token;
 import com.example.UserAuthentication.models.User;
 import com.example.UserAuthentication.services.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +38,7 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public SignupResponseDto userSignup(@RequestBody SignupRequestDto signupRequestDto) throws EmailAlreadyExists {
+    public SignupResponseDto userSignup(@RequestBody SignupRequestDto signupRequestDto) throws EmailAlreadyExists, JsonProcessingException {
         SignupResponseDto signupResponseDto = new SignupResponseDto();
         try{
             User newUser = this.userService.userSignup(signupRequestDto.getName(), signupRequestDto.getEmail(),
